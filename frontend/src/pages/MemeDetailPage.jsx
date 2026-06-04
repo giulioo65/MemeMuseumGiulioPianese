@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Container,
   Title,
@@ -25,6 +25,7 @@ import { useAuth } from "../context/AuthContext";
 function MemeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { token, user, isAuthenticated, authLoaded } = useAuth();
 
@@ -86,7 +87,7 @@ function MemeDetailPage() {
     event.preventDefault();
 
     if (!isAuthenticated || !token) {
-      setCommentError("Devi effettuare il login per commentare");
+      navigate("/login", { state: { from: location.pathname } });
       return;
     }
 
@@ -114,7 +115,10 @@ function MemeDetailPage() {
   }
 
   async function handleVote(value) {
-    if (!isAuthenticated || !token) return;
+    if (!isAuthenticated || !token) {
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
 
     try {
       setVoteLoading(true);
@@ -240,27 +244,25 @@ function MemeDetailPage() {
           <Badge color="gray">Score: {votes.score}</Badge>
         </Group>
 
-        {isAuthenticated && (
-          <Group mt="sm">
-            <Button
-              color="green"
-              variant={votes.userVote === 1 ? "filled" : "light"}
-              onClick={() => handleVote(1)}
-              loading={voteLoading}
-            >
-              Upvote
-            </Button>
+        <Group mt="sm">
+          <Button
+            color="green"
+            variant={votes.userVote === 1 ? "filled" : "light"}
+            onClick={() => handleVote(1)}
+            loading={voteLoading}
+          >
+            👍 Upvote
+          </Button>
 
-            <Button
-              color="red"
-              variant={votes.userVote === -1 ? "filled" : "light"}
-              onClick={() => handleVote(-1)}
-              loading={voteLoading}
-            >
-              Downvote
-            </Button>
-          </Group>
-        )}
+          <Button
+            color="red"
+            variant={votes.userVote === -1 ? "filled" : "light"}
+            onClick={() => handleVote(-1)}
+            loading={voteLoading}
+          >
+            👎 Downvote
+          </Button>
+        </Group>
 
         <Divider my="xl" />
 
@@ -274,11 +276,7 @@ function MemeDetailPage() {
 
             <Textarea
               label="Scrivi un commento"
-              placeholder={
-                isAuthenticated
-                  ? "Inserisci il tuo commento..."
-                  : "Effettua il login per commentare"
-              }
+              placeholder="Inserisci il tuo commento..."
               value={commentText}
               onChange={(event) => setCommentText(event.currentTarget.value)}
               onKeyDown={(event) => {
@@ -287,18 +285,24 @@ function MemeDetailPage() {
                   handleCreateComment(event);
                 }
               }}
-              disabled={!isAuthenticated}
               autosize
               minRows={2}
             />
 
-            <Button
-              type="submit"
-              loading={commentLoading}
-              disabled={!isAuthenticated}
-            >
-              Pubblica commento
-            </Button>
+            {isAuthenticated ? (
+              <Button type="submit" loading={commentLoading}>
+                Pubblica commento
+              </Button>
+            ) : (
+              <Button
+                variant="light"
+                component={Link}
+                to="/login"
+                state={{ from: location.pathname }}
+              >
+                Accedi per commentare
+              </Button>
+            )}
           </Stack>
         </form>
 

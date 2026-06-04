@@ -6,8 +6,6 @@ import {
   Text,
   SimpleGrid,
   Card,
-  Group,
-  Badge,
   Button,
   Loader,
   Center,
@@ -17,16 +15,12 @@ import {
 
 import MemeCard from "../components/MemeCard";
 import { getMemes } from "../api/memeApi";
-import { getMemeVotes, voteMeme } from "../api/voteApi";
-import { getCommentsByMeme } from "../api/commentApi";
 import { useAuth } from "../context/AuthContext";
 
 function MyMemesPage() {
   const { token, user, isAuthenticated, authLoaded } = useAuth();
 
   const [memes, setMemes] = useState([]);
-  const [votes, setVotes] = useState({});
-  const [commentCounts, setCommentCounts] = useState({});
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -34,7 +28,6 @@ function MyMemesPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [voteLoading, setVoteLoading] = useState({});
 
   async function loadMyMemes() {
     if (!user?.id) return;
@@ -56,32 +49,6 @@ function MyMemesPage() {
       setTotalItems(
         Array.isArray(data) ? loadedMemes.length : data.totalItems || 0
       );
-
-      const votesData = {};
-      const commentsData = {};
-
-      for (const meme of loadedMemes) {
-        try {
-          votesData[meme.id] = await getMemeVotes(meme.id, token);
-        } catch {
-          votesData[meme.id] = {
-            upvotes: 0,
-            downvotes: 0,
-            score: 0,
-            userVote: 0,
-          };
-        }
-
-        try {
-          const memeComments = await getCommentsByMeme(meme.id, token);
-          commentsData[meme.id] = memeComments.length;
-        } catch {
-          commentsData[meme.id] = 0;
-        }
-      }
-
-      setVotes(votesData);
-      setCommentCounts(commentsData);
     } catch (err) {
       console.error("Errore caricamento miei meme:", err);
       setError("Errore durante il caricamento dei tuoi meme");
@@ -90,39 +57,12 @@ function MyMemesPage() {
     }
   }
 
-  async function handleVote(memeId, value) {
-    if (!isAuthenticated || !token) return;
-
-    try {
-      setVoteLoading((prev) => ({
-        ...prev,
-        [memeId]: true,
-      }));
-
-      const updatedVotes = await voteMeme(memeId, value, token);
-
-      setVotes((prev) => ({
-        ...prev,
-        [memeId]: updatedVotes,
-      }));
-    } catch (err) {
-      console.error("Errore voto:", err);
-    } finally {
-      setVoteLoading((prev) => ({
-        ...prev,
-        [memeId]: false,
-      }));
-    }
-  }
-
   useEffect(() => {
     if (!authLoaded) return;
-
     if (!isAuthenticated) {
       setLoading(false);
       return;
     }
-
     loadMyMemes();
   }, [authLoaded, isAuthenticated, user?.id, token, currentPage]);
 
@@ -158,10 +98,9 @@ function MyMemesPage() {
 
   return (
     <Container size="lg" py="xl">
-      <Group justify="space-between" mb="md">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
         <div>
           <Title order={1}>I miei meme</Title>
-
           <Text c="dimmed" mt="xs">
             Qui trovi tutti i meme che hai pubblicato.
           </Text>
@@ -170,7 +109,7 @@ function MyMemesPage() {
         <Button component={Link} to="/memes/create">
           Crea nuovo meme
         </Button>
-      </Group>
+      </div>
 
       {memes.length === 0 ? (
         <Card withBorder shadow="sm" padding="lg" radius="md">
@@ -192,62 +131,7 @@ function MyMemesPage() {
 
           <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="lg">
             {memes.map((meme) => (
-              <Card key={meme.id} shadow="sm" padding="lg" radius="md" withBorder>
-                <MemeCard meme={meme} />
-
-                {votes[meme.id] && (
-                  <Group mt="sm">
-                    <Badge
-                      component={Link}
-                      to={`/memes/${meme.id}`}
-                      color="green"
-                      style={{ cursor: "pointer", textDecoration: "none" }}
-                    >
-                      Upvote: {votes[meme.id].upvotes}
-                    </Badge>
-
-                    <Badge
-                      component={Link}
-                      to={`/memes/${meme.id}`}
-                      color="red"
-                      style={{ cursor: "pointer", textDecoration: "none" }}
-                    >
-                      Downvote: {votes[meme.id].downvotes}
-                    </Badge>
-
-                    <Badge
-                      component={Link}
-                      to={`/memes/${meme.id}`}
-                      color="gray"
-                      style={{ cursor: "pointer", textDecoration: "none" }}
-                    >
-                      Commenti: {commentCounts[meme.id] ?? 0}
-                    </Badge>
-                  </Group>
-                )}
-
-                {votes[meme.id] && (
-                  <Group mt="sm">
-                    <Button
-                      color="green"
-                      variant={votes[meme.id].userVote === 1 ? "filled" : "light"}
-                      onClick={() => handleVote(meme.id, 1)}
-                      loading={voteLoading[meme.id]}
-                    >
-                      Upvote
-                    </Button>
-
-                    <Button
-                      color="red"
-                      variant={votes[meme.id].userVote === -1 ? "filled" : "light"}
-                      onClick={() => handleVote(meme.id, -1)}
-                      loading={voteLoading[meme.id]}
-                    >
-                      Downvote
-                    </Button>
-                  </Group>
-                )}
-              </Card>
+              <MemeCard key={meme.id} meme={meme} />
             ))}
           </SimpleGrid>
 

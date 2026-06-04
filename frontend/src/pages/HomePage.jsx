@@ -9,7 +9,6 @@ import {
   Alert,
   Card,
   Group,
-  Badge,
   Button,
   TextInput,
   Select,
@@ -18,11 +17,9 @@ import {
 
 import MemeCard from "../components/MemeCard";
 import { getMemes } from "../api/memeApi";
-import { getMemeVotes, voteMeme } from "../api/voteApi";
-import { getCommentsByMeme } from "../api/commentApi";
 import { getMemeOfTheDay } from "../api/todayApi";
 import { useAuth } from "../context/AuthContext";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 function HomePage() {
   const { token, user, isAuthenticated, authLoaded } = useAuth();
@@ -49,8 +46,6 @@ function HomePage() {
     selectedUserId && user && String(selectedUserId) === String(user.id);
 
   const [memes, setMemes] = useState([]);
-  const [votes, setVotes] = useState({});
-  const [commentCounts, setCommentCounts] = useState({});
   const [memeOfTheDay, setMemeOfTheDay] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(selectedPage);
@@ -59,7 +54,6 @@ function HomePage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [voteLoading, setVoteLoading] = useState({});
 
   const [showFilters, setShowFilters] = useState(false);
   const [tagInput, setTagInput] = useState(selectedTag);
@@ -77,36 +71,26 @@ function HomePage() {
   }
 
   function buildFiltersFromUrl() {
-    const filters = {
-      page: selectedPage,
-    };
-
+    const filters = { page: selectedPage };
     if (selectedTag) filters.tag = selectedTag;
     if (selectedAuthor) filters.author = selectedAuthor;
     if (selectedUserId) filters.userId = selectedUserId;
     if (selectedDateFrom) filters.dateFrom = selectedDateFrom;
     if (selectedDateTo) filters.dateTo = selectedDateTo;
     if (selectedSort) filters.sort = selectedSort;
-
     return filters;
   }
 
   function applyFilters(event) {
-    if (event) {
-      event.preventDefault();
-    }
-
+    if (event) event.preventDefault();
     const params = {};
-
     if (tagInput.trim()) params.tag = tagInput.trim();
     if (authorInput.trim()) params.author = authorInput.trim();
     if (selectedUserId) params.userId = selectedUserId;
     if (dateFromInput) params.dateFrom = dateFromInput;
     if (dateToInput) params.dateTo = dateToInput;
     if (sortInput) params.sort = sortInput;
-
     params.page = "1";
-
     setSearchParams(params);
   }
 
@@ -119,19 +103,15 @@ function HomePage() {
     setSearchParams({});
   }
 
-
   function handlePageChange(page) {
     const params = {};
-
     if (selectedTag) params.tag = selectedTag;
     if (selectedAuthor) params.author = selectedAuthor;
     if (selectedUserId) params.userId = selectedUserId;
     if (selectedDateFrom) params.dateFrom = selectedDateFrom;
     if (selectedDateTo) params.dateTo = selectedDateTo;
     if (selectedSort) params.sort = selectedSort;
-
     params.page = String(page);
-
     setSearchParams(params);
   }
 
@@ -139,44 +119,15 @@ function HomePage() {
     try {
       setLoading(true);
       setError("");
-
       const filters = buildFiltersFromUrl();
       const data = await getMemes(token, filters);
-
       const loadedMemes = Array.isArray(data) ? data : data.memes || [];
-
       setMemes(loadedMemes);
       setCurrentPage(Array.isArray(data) ? 1 : data.currentPage || 1);
       setTotalPages(Array.isArray(data) ? 1 : data.totalPages || 1);
       setTotalItems(
         Array.isArray(data) ? loadedMemes.length : data.totalItems || 0
       );
-
-      const votesData = {};
-      const commentsData = {};
-
-      for (const meme of loadedMemes) {
-        try {
-          votesData[meme.id] = await getMemeVotes(meme.id, token);
-        } catch {
-          votesData[meme.id] = {
-            upvotes: 0,
-            downvotes: 0,
-            score: 0,
-            userVote: 0,
-          };
-        }
-
-        try {
-          const memeComments = await getCommentsByMeme(meme.id, token);
-          commentsData[meme.id] = memeComments.length;
-        } catch {
-          commentsData[meme.id] = 0;
-        }
-      }
-
-      setVotes(votesData);
-      setCommentCounts(commentsData);
     } catch (err) {
       console.error(err);
       setError("Errore durante il caricamento dei meme");
@@ -194,31 +145,6 @@ function HomePage() {
     }
   }
 
-  async function handleVote(memeId, value) {
-    if (!isAuthenticated || !token) return;
-
-    try {
-      setVoteLoading((prev) => ({
-        ...prev,
-        [memeId]: true,
-      }));
-
-      const updatedVotes = await voteMeme(memeId, value, token);
-
-      setVotes((prev) => ({
-        ...prev,
-        [memeId]: updatedVotes,
-      }));
-    } catch (err) {
-      console.error("Errore voto:", err);
-    } finally {
-      setVoteLoading((prev) => ({
-        ...prev,
-        [memeId]: false,
-      }));
-    }
-  }
-
   useEffect(() => {
     syncFilterInputsFromUrl();
   }, [
@@ -231,11 +157,7 @@ function HomePage() {
 
   useEffect(() => {
     if (!authLoaded) return;
-
-    if (!hasActiveFilters && selectedPage === 1) {
-      loadMemeOfTheDay();
-    }
-
+    if (!hasActiveFilters && selectedPage === 1) loadMemeOfTheDay();
     loadMemes();
   }, [
     authLoaded,
@@ -282,7 +204,7 @@ function HomePage() {
 
         {hasActiveFilters && (
           <Button variant="subtle" color="gray" onClick={resetFilters}>
-            Rimuovi filtri 
+            Rimuovi filtri
           </Button>
         )}
       </Group>
@@ -331,7 +253,6 @@ function HomePage() {
                 value={dateFromInput}
                 onChange={(event) => setDateFromInput(event.currentTarget.value)}
               />
-
             </SimpleGrid>
 
             <Group mt="sm">
@@ -409,21 +330,22 @@ function HomePage() {
         </Alert>
       )}
 
+      {/* Meme of the day */}
       {!hasActiveFilters && selectedPage === 1 && memeOfTheDay && (
-       <Card
-  shadow="sm"
-  padding="lg"
-  radius="xl"
-  withBorder
-  mb="lg"
-  style={{
-    background: "rgba(255, 255, 255, 0.65)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    border: "1px solid rgba(255, 255, 255, 0.45)",
-    boxShadow: "0 12px 32px rgba(0, 0, 0, 0.08)",
-  }}
->
+        <Card
+          shadow="sm"
+          padding="lg"
+          radius="xl"
+          withBorder
+          mb="lg"
+          style={{
+            background: "rgba(255, 255, 255, 0.65)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            border: "1px solid rgba(255, 255, 255, 0.45)",
+            boxShadow: "0 12px 32px rgba(0, 0, 0, 0.08)",
+          }}
+        >
           <Title order={2} mb="md">
             Meme del giorno
           </Title>
@@ -432,6 +354,7 @@ function HomePage() {
         </Card>
       )}
 
+      {/* Meme grid */}
       {memes.length === 0 ? (
         <Text>Nessun meme disponibile.</Text>
       ) : (
@@ -442,62 +365,7 @@ function HomePage() {
 
           <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="lg">
             {memes.map((meme) => (
-              <Card key={meme.id} shadow="sm" padding="lg" radius="md" withBorder>
-                <MemeCard meme={meme} />
-
-                {votes[meme.id] && (
-                  <Group mt="sm">
-                    <Badge
-                      component={Link}
-                      to={`/memes/${meme.id}`}
-                      color="green"
-                      style={{ cursor: "pointer", textDecoration: "none" }}
-                    >
-                      Upvote: {votes[meme.id].upvotes}
-                    </Badge>
-
-                    <Badge
-                      component={Link}
-                      to={`/memes/${meme.id}`}
-                      color="red"
-                      style={{ cursor: "pointer", textDecoration: "none" }}
-                    >
-                      Downvote: {votes[meme.id].downvotes}
-                    </Badge>
-
-                    <Badge
-                      component={Link}
-                      to={`/memes/${meme.id}`}
-                      color="gray"
-                      style={{ cursor: "pointer", textDecoration: "none" }}
-                    >
-                      Commenti: {commentCounts[meme.id] ?? 0}
-                    </Badge>
-                  </Group>
-                )}
-
-                {isAuthenticated && votes[meme.id] && (
-                  <Group mt="sm">
-                    <Button
-                      color="green"
-                      variant={votes[meme.id].userVote === 1 ? "filled" : "light"}
-                      onClick={() => handleVote(meme.id, 1)}
-                      loading={voteLoading[meme.id]}
-                    >
-                      Upvote
-                    </Button>
-
-                    <Button
-                      color="red"
-                      variant={votes[meme.id].userVote === -1 ? "filled" : "light"}
-                      onClick={() => handleVote(meme.id, -1)}
-                      loading={voteLoading[meme.id]}
-                    >
-                      Downvote
-                    </Button>
-                  </Group>
-                )}
-              </Card>
+              <MemeCard key={meme.id} meme={meme} />
             ))}
           </SimpleGrid>
 

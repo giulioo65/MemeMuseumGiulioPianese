@@ -379,40 +379,51 @@ async function deleteMeme(req, res) {
 
 async function getMemeOfTheDay(req, res) {
   try {
-    const memes = await Meme.findAll({
-      include: memeInclude,
-      order: [["createdAt", "DESC"]],
-    });
+    // 1) Contiamo i meme — il DB restituisce solo un numero, zero dati in RAM
+    const count = await Meme.count();
 
-    if (!memes.length) {
+    if (!count) {
       return res.status(404).json({ message: "Nessun meme disponibile" });
     }
 
-    /*
-      Calcoliamo il giorno corrente.
-      Finché siamo nello stesso giorno, l'indice sarà sempre lo stesso.
-      Il giorno dopo, l'indice cambia automaticamente.
-    */
+    // 2) Numero del giorno dall'epoch (cambia a mezzanotte)
     const now = new Date();
-    const todayStart = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate()
-    );
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dayNumber = Math.floor(todayStart.getTime() / (1000 * 60 * 60 * 24));
 
-    const dayNumber = Math.floor(
-      todayStart.getTime() / (1000 * 60 * 60 * 24)
-    );
+    // 3) Generatore pseudo-casuale con seme = giorno corrente
+    //    Stesso giorno → stesso seme → stesso offset → stesso meme
+    //    Giorno diverso → seme diverso → offset diverso → meme diverso
+    function seededRandom(seed) {
+      let s = seed;
+      return function () {
+        s = (s * 1664525 + 1013904223) & 0xffffffff;
+        return (s >>> 0) / 0xffffffff;
+      };
+    }
 
-    const dailyIndex = dayNumber % memes.length;
-    const memeOfTheDay = memes[dailyIndex];
+    const rand = seededRandom(dayNumber);
+    const offset = Math.floor(rand() * count); // numero tra 0 e count-1
 
-    return res.json(memeOfTheDay);
+    // 4) Carichiamo UNO solo meme — LIMIT 1 OFFSET <offset>
+    const meme = await Meme.findOne({
+      include: memeInclude,
+      order: [["id", "ASC"]], // ordine stabile
+      offset,
+    });
+
+    if (!meme) {
+      return res.status(404).json({ message: "Nessun meme disponibile" });
+    }
+
+    return res.json(meme);
   } catch (error) {
     console.error("Get meme of the day error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
+
+
 
 module.exports = {
   getAllMemes,

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Container,
   Paper,
@@ -17,10 +17,14 @@ import { useAuth } from "../context/AuthContext";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
-  const [email, setEmail] = useState("test@example.com");
-  const [password, setPassword] = useState("password123");
+  // Where to send the user after a successful login
+  const from = location.state?.from || "/";
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -37,7 +41,7 @@ function LoginPage() {
       });
 
       login(data);
-      navigate("/");
+      navigate(from, { replace: true });
     } catch (err) {
       console.error(err);
       setError("Credenziali non valide");

@@ -40,8 +40,8 @@ function Navbar() {
             <Container size="lg" py="md">
                 <Group justify="space-between">
                     <div className={styles.logo}>
-                        <img src="favicon.svg"/>
-                         <Text
+                        <img src="favicon.svg" />
+                        <Text
                             fw={700}
                             size="xl"
                             onClick={goToHomeTop}
@@ -54,7 +54,7 @@ function Navbar() {
                             MemeMuseum
                         </Text>
                     </div>
-                   
+
 
                     <Group>
                         <Button onClick={goToHomeTop} variant="subtle">
@@ -63,9 +63,6 @@ function Navbar() {
 
                         {isAuthenticated ? (
                             <>
-                                <Button component={Link} to="/memes/create" variant="light">
-                                    Crea meme
-                                </Button>
 
                                 <Button color="violet" variant="light" onClick={goToMyMemes}>
                                     I miei meme
