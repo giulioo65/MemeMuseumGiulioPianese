@@ -40,7 +40,12 @@ function Navbar() {
             <Container size="lg" py="md">
                 <Group justify="space-between">
                     <div className={styles.logo}>
-                        <img src="favicon.svg" />
+                        <img 
+                            src="/logo.png" 
+                            alt="MemeMuseum Logo" 
+                            onClick={goToHomeTop}
+                            style={{ cursor: "pointer" }}
+                        />
                         <Text
                             fw={700}
                             size="xl"

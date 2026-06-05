@@ -379,21 +379,35 @@ async function deleteMeme(req, res) {
 
 async function getMemeOfTheDay(req, res) {
   try {
-    // 1) Contiamo i meme — il DB restituisce solo un numero, zero dati in RAM
-    const count = await Meme.count();
+    // 1) Prendi tutti i meme
+    const allMemes = await Meme.findAll({ include: memeInclude });
 
-    if (!count) {
+    if (allMemes.length === 0) {
       return res.status(404).json({ message: "Nessun meme disponibile" });
     }
 
-    // 2) Numero del giorno dall'epoch (cambia a mezzanotte)
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const dayNumber = Math.floor(todayStart.getTime() / (1000 * 60 * 60 * 24));
+    // 2) Calcola i punteggi
+    const memesWithScore = await Promise.all(
+      allMemes.map(async (meme) => {
+        const votes = await Vote.findAll({ where: { memeId: meme.id } });
+        const upvotes = votes.filter((v) => v.value === 1).length;
+        const downvotes = votes.filter((v) => v.value === -1).length;
+        return {
+          ...meme.toJSON(),
+          score: upvotes - downvotes,
+        };
+      })
+    );
 
-    // 3) Generatore pseudo-casuale con seme = giorno corrente
-    //    Stesso giorno → stesso seme → stesso offset → stesso meme
-    //    Giorno diverso → seme diverso → offset diverso → meme diverso
+    // 3) Ordina per punteggio decrescente e prendi la Top 20
+    memesWithScore.sort((a, b) => b.score - a.score);
+    const top20 = memesWithScore.slice(0, 20);
+
+    // 4) Ordina la Top 20 per ID per garantire che l'array sia "stabile"
+    // (altrimenti cambiamenti di score rimescolano l'ordine e rovinano il generatore)
+    top20.sort((a, b) => a.id - b.id);
+
+    // 5) Generatore pseudo-casuale per "pescare" un meme in base alla data
     function seededRandom(seed) {
       let s = seed;
       return function () {
@@ -402,21 +416,25 @@ async function getMemeOfTheDay(req, res) {
       };
     }
 
-    const rand = seededRandom(dayNumber);
-    const offset = Math.floor(rand() * count); // numero tra 0 e count-1
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dayNumber = Math.floor(todayStart.getTime() / (1000 * 60 * 60 * 24));
 
-    // 4) Carichiamo UNO solo meme — LIMIT 1 OFFSET <offset>
-    const meme = await Meme.findOne({
-      include: memeInclude,
-      order: [["id", "ASC"]], // ordine stabile
-      offset,
-    });
+    // Estraiamo il meme "virtuale" di ieri e quello di oggi
+    const randYesterday = seededRandom(dayNumber - 1);
+    const randToday = seededRandom(dayNumber);
 
-    if (!meme) {
-      return res.status(404).json({ message: "Nessun meme disponibile" });
+    const offsetYesterday = Math.floor(randYesterday() * top20.length);
+    const offsetToday = Math.floor(randToday() * top20.length);
+
+    let finalOffset = offsetToday;
+
+    // 6) Antirimbalzo: se oggi pesco lo stesso ID di ieri, prendo il successivo
+    if (top20[offsetToday].id === top20[offsetYesterday].id) {
+      finalOffset = (offsetToday + 1) % top20.length;
     }
 
-    return res.json(meme);
+    return res.json(top20[finalOffset]);
   } catch (error) {
     console.error("Get meme of the day error:", error);
     return res.status(500).json({ message: "Internal server error" });

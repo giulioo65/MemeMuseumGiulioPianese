@@ -1,0 +1,17 @@
+/* homePage.module.css */
+
+.featuredSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.featuredSectionTitle {
+  align-self: flex-start;
+}
+
+.featuredCardWrapper {
+  width: 100%;
+  max-width: 480px;
+}

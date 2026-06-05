@@ -1,0 +1,12 @@
+/* createMemePage.module.css */
+
+.imageUploadLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.requiredStar {
+  color: var(--mantine-color-red-6);
+  margin-left: 4px;
+}

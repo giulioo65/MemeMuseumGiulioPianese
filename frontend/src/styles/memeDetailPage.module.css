@@ -1,0 +1,20 @@
+/* memeDetailPage.module.css */
+
+.clickableTag {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.clickableTag:hover {
+  opacity: 0.75;
+}
+
+.clickableAuthor {
+  cursor: pointer;
+  text-decoration: underline;
+  transition: opacity 0.15s ease;
+}
+
+.clickableAuthor:hover {
+  opacity: 0.75;
+}

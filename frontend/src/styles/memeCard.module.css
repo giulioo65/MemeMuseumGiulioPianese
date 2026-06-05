@@ -18,3 +18,13 @@
   margin-top: 0.75rem;
   width: 100%;
 }
+
+.clickableAuthor {
+  cursor: pointer;
+  text-decoration: underline;
+  transition: opacity 0.15s ease;
+}
+
+.clickableAuthor:hover {
+  opacity: 0.75;
+}
