@@ -15,7 +15,7 @@ export function useMyMemes({ token, user, isAuthenticated, authLoaded }) {
 
   useEffect(() => {
     if (!authLoaded) return;
-    if (!isAuthenticated) { setLoading(false); return; }
+    if (!isAuthenticated) { setLoading(false); return; } // eslint-disable-line react-hooks/set-state-in-effect
     if (!user?.id) return;
 
     async function load() {

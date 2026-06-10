@@ -12,10 +12,14 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 30px;
 }
 
 .logo img {
-  width: 90px;
-  height: 90px;
+  width: 150px;
+  height: 150px;
+  margin-top: -50px;
+  /* Sposta il logo verso l'alto */
+  margin-bottom: -40px;
+  /* Evita che il logo ingrandisca troppo la navbar */
 }

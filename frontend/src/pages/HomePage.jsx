@@ -1,4 +1,4 @@
-import { Container, Title, Text, SimpleGrid, Loader, Center, Alert, Group, Button, Pagination } from "@mantine/core";
+import { Container, Text, SimpleGrid, Loader, Center, Alert, Group, Button, Pagination } from "@mantine/core";
 
 import { useAuth }        from "../context/AuthContext";
 import { useHomeFilters } from "../hooks/useHomeFilters";
@@ -20,7 +20,6 @@ function HomePage() {
     tagInput, setTagInput,
     authorInput, setAuthorInput,
     dateFromInput, setDateFromInput,
-    dateToInput, setDateToInput,
     sortInput, setSortInput,
     applyFilters, resetFilters, handlePageChange,
   } = filters;
@@ -49,11 +48,14 @@ function HomePage() {
 
   return (
     <Container size="lg" py="xl">
-      <Title order={1} mb="sm">MemeMuseum</Title>
-      <Text c="dimmed" mb="xl">Esplora i meme pubblicati dagli utenti.</Text>
+
+      {/* Meme del giorno */}
+      {!hasActiveFilters && selectedPage === 1 && (
+        <MemeOfTheDay meme={memeOfTheDay} />
+      )}
 
       {/* Controlli filtri */}
-      <Group mb="md">
+      <Group mb="md" mt="xl">
         <Button variant="light" onClick={() => setShowFilters((p) => !p)}>Filtra</Button>
         {hasActiveFilters && (
           <Button variant="subtle" color="gray" onClick={resetFilters}>Rimuovi filtri</Button>
@@ -79,11 +81,6 @@ function HomePage() {
           selectedSort={selectedSort}
           onReset={resetFilters}
         />
-      )}
-
-      {/* Meme del giorno */}
-      {!hasActiveFilters && selectedPage === 1 && (
-        <MemeOfTheDay meme={memeOfTheDay} />
       )}
 
       {/* Griglia meme */}

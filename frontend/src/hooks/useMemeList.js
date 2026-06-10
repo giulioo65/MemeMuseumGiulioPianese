@@ -15,6 +15,8 @@ export function useMemeList({ token, authLoaded, filters, showMemeOfDay }) {
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState("");
 
+  const serializedFilters = JSON.stringify(filters);
+
   useEffect(() => {
     if (!authLoaded) return;
 
@@ -44,7 +46,7 @@ export function useMemeList({ token, authLoaded, filters, showMemeOfDay }) {
     }
 
     load();
-  }, [authLoaded, token, JSON.stringify(filters), showMemeOfDay]);
+  }, [authLoaded, token, serializedFilters, showMemeOfDay]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { memes, memeOfTheDay, currentPage, totalPages, totalItems, loading, error };
 }

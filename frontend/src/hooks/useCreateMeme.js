@@ -19,7 +19,7 @@ export function useCreateMeme({ token, isAuthenticated, navigate }) {
 
   // Genera URL di anteprima quando cambia il file
   useEffect(() => {
-    if (!imageFile) { setFilePreview(""); return; }
+    if (!imageFile) { setFilePreview(""); return; } // eslint-disable-line react-hooks/set-state-in-effect
     const url = URL.createObjectURL(imageFile);
     setFilePreview(url);
     return () => URL.revokeObjectURL(url);
@@ -28,6 +28,17 @@ export function useCreateMeme({ token, isAuthenticated, navigate }) {
   function showError(msg) {
     setError(msg);
     setErrorModalOpen(true);
+  }
+
+  function isValidImageUrl(url) {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+      const validExtensions = /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i;
+      return validExtensions.test(parsed.pathname);
+    } catch {
+      return false;
+    }
   }
 
   function getTagsArray() {
@@ -71,6 +82,10 @@ export function useCreateMeme({ token, isAuthenticated, navigate }) {
       showError("Devi fornire un'immagine. Carica un file dal tuo PC oppure inserisci un URL immagine valido.");
       return;
     }
+    if (!imageFile && imageUrl.trim() && !isValidImageUrl(imageUrl.trim())) {
+      showError("L'URL inserito non sembra un link valido a un'immagine. Assicurati che inizi con http:// o https:// e termini con un'estensione immagine (jpg, png, gif, webp, ecc.).");
+      return;
+    }
     if (tags.length === 0) {
       showError("Inserisci almeno un tag per categorizzare il tuo meme (es. Gatto, Programmazione).");
       return;
@@ -101,6 +116,7 @@ export function useCreateMeme({ token, isAuthenticated, navigate }) {
     title, setTitle,
     description, setDescription,
     imageUrl, imageFile, filePreview,
+    validatedUrlPreview: isValidImageUrl(imageUrl) ? imageUrl : "",
     tagInput, setTagInput,
     resetRef,
     loading, error, errorModalOpen, setErrorModalOpen,

@@ -40,9 +40,9 @@ function Navbar() {
             <Container size="lg" py="md">
                 <Group justify="space-between">
                     <div className={styles.logo}>
-                        <img 
-                            src="/logo.png" 
-                            alt="MemeMuseum Logo" 
+                        <img
+                            src="/logo.png"
+                            alt="MemeMuseum Logo"
                             onClick={goToHomeTop}
                             style={{ cursor: "pointer" }}
                         />
@@ -62,30 +62,30 @@ function Navbar() {
 
 
                     <Group>
-                        <Button onClick={goToHomeTop} variant="subtle">
+                        <Button onClick={goToHomeTop} variant="subtle" size="lg">
                             Home
                         </Button>
 
                         {isAuthenticated ? (
                             <>
 
-                                <Button color="violet" variant="light" onClick={goToMyMemes}>
+                                <Button color="violet" variant="light" onClick={goToMyMemes} size="lg">
                                     I miei meme
                                 </Button>
 
-                                <Text size="sm">Ciao, {user.username}</Text>
+                                <Text size="md" fw={500}>Ciao, {user.username}</Text>
 
-                                <Button color="red" variant="light" onClick={handleLogout}>
+                                <Button color="red" variant="light" onClick={handleLogout} size="lg" ml="xl">
                                     Logout
                                 </Button>
                             </>
                         ) : (
                             <>
-                                <Button component={Link} to="/login" variant="subtle">
+                                <Button component={Link} to="/login" variant="subtle" size="lg">
                                     Login
                                 </Button>
 
-                                <Button component={Link} to="/register">
+                                <Button component={Link} to="/register" size="lg">
                                     Registrati
                                 </Button>
                             </>

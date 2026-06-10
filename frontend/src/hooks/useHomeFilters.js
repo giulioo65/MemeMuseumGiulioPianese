@@ -34,11 +34,13 @@ export function useHomeFilters() {
   // Sincronizza i campi del form quando l'URL cambia esternamente
   // (es. click su un tag da MemeCard o navigazione diretta con parametri)
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setTagInput(selectedTag);
     setAuthorInput(selectedAuthor);
     setDateFromInput(selectedDateFrom);
     setDateToInput(selectedDateTo);
     setSortInput(selectedSort);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [selectedTag, selectedAuthor, selectedDateFrom, selectedDateTo, selectedSort]);
 
   function applyFilters(event) {

@@ -13,10 +13,11 @@ function CreateMemePage() {
   const navigate = useNavigate();
   const { token, isAuthenticated } = useAuth();
 
+
   const {
     title, setTitle,
     description, setDescription,
-    imageUrl, imageFile, filePreview,
+    imageUrl, imageFile, filePreview, validatedUrlPreview,
     tagInput, setTagInput,
     resetRef,
     loading, error, errorModalOpen, setErrorModalOpen,
@@ -30,7 +31,7 @@ function CreateMemePage() {
     </Container>
   );
 
-  const previewSrc = filePreview || imageUrl;
+  const previewSrc = filePreview || validatedUrlPreview;
 
   return (
     <Container size="sm" py="xl">

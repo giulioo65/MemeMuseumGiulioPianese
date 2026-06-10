@@ -1,12 +1,12 @@
 import { Card, SimpleGrid, TextInput, Select, Button, Group } from "@mantine/core";
 
 const SORT_OPTIONS = [
-  { value: "newest",    label: "Data: più recenti" },
-  { value: "oldest",   label: "Data: più vecchi" },
+  { value: "newest", label: "Data: più recenti" },
+  { value: "oldest", label: "Data: più vecchi" },
   { value: "titleAsc", label: "Titolo: A-Z" },
-  { value: "titleDesc",label: "Titolo: Z-A" },
-  { value: "upvotes",  label: "Più upvoted" },
-  { value: "downvotes",label: "Più downvoted" },
+  { value: "titleDesc", label: "Titolo: Z-A" },
+  { value: "upvotes", label: "Più upvoted" },
+  { value: "downvotes", label: "Più downvoted" },
 ];
 
 /**
@@ -56,9 +56,9 @@ function FilterPanel({
         </SimpleGrid>
 
         <Group mt="sm">
-          <Button type="submit" size="xs">Applica filtri</Button>
+          <Button type="submit" size="xs">Applica</Button>
           <Button type="button" variant="light" color="gray" size="xs" onClick={onReset}>
-            Reset
+            Rimuovi
           </Button>
         </Group>
       </form>
